@@ -42,6 +42,7 @@ export type {
 } from './user';
 
 export type {
+  LlmMessage,
   LlmProxyRequest,
   LlmProxyResponse,
   StreamCallbacks,

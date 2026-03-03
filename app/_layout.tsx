@@ -31,7 +31,7 @@ function RootNavigator() {
 
   useEffect(() => {
     // Wait until the navigator is mounted (segments will be populated)
-    if (segments.length === 0) return;
+    if ((segments as string[]).length === 0) return;
 
     const inOnboarding =
       segments[0] === 'onboarding' || segments[0] === 'paywall';
