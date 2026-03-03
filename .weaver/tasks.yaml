@@ -1,0 +1,153 @@
+version: 1
+settings:
+  concurrency: 5
+  default_base_branch: main
+  branch_prefix: weaver/
+tasks:
+  - id: T1772514008997
+    title: Speakland Foundation — 项目脚手架 + 基础设施。
+    status: IN_PROGRESS
+    depends_on: []
+    raw_request: >-
+      Speakland Foundation — 项目脚手架 + 基础设施。
+
+
+      PRD: docs/prds/speakland-app.md
+
+      LLM Proxy PRD: docs/prds/llm-api-supabase-edge-function.md
+
+
+      从零搭建 Speakland Expo 项目的全部基础设施，不含用户可见功能界面。
+
+
+      具体范围：
+
+
+      1. Expo 项目初始化（expo-router file-based routing, TypeScript strict）
+
+      2. 安装所有依赖：@supabase/supabase-js, zustand, expo-av, expo-speech, react-native-reanimated, expo-auth-session
+      (Google/Apple Sign-In), react-native-purchases (RevenueCat), 以及其他 PRD 要求的库
+
+      3. 项目配置：app.json（scheme, plugins, splash）, tsconfig.json, babel.config.js, .env.example（列出所有需要的环境变量）
+
+      4. Supabase 集成：
+         - client 初始化（lib/supabase.ts）
+         - 完整 DB schema SQL（stories, characters, chapters, dialogue_history, game_states, user_word_books, user_profiles 等表）
+         - RLS policies（按用户隔离数据）
+         - 本地开发用的 seed data
+      5. Supabase Edge Function: llm-proxy/index.ts
+         - JWT 认证
+         - 流式（SSE 透传）+ 非流式转发
+         - 从服务端环境变量读取 LLM_API_KEY, LLM_API_ENDPOINT, LLM_MODEL
+         - 参考 docs/prds/llm-api-supabase-edge-function.md 完整实现
+      6. Auth 完整流程：
+         - Google Sign-In + Apple Sign-In
+         - 登录/登出/session 管理/自动恢复
+         - AuthContext provider
+      7. RevenueCat 初始化 + Purchases.configure
+
+      8. expo-router 导航结构：
+         - app/_layout.tsx（root，providers wrap）
+         - app/onboarding/ 目录（预留）
+         - app/(tabs)/_layout.tsx（3 tab 结构：首页/角色/单词本）
+         - app/scene/[id].tsx（预留）
+         - app/paywall.tsx（预留）
+      9. 共享类型定义 types/（Story, Character, Chapter, DialogueMessage, GameState, WordEntry, UserProfile, OnboardingData 等）
+
+      10. 主题常量 constants/（颜色、字体、间距）
+
+      11. Zustand stores 骨架（useAuthStore, useOnboardingStore, useGameStore, useVocabularyStore）
+
+      12. lib/llmClient.ts 公共调用层：
+          - callLlmProxy()（非流式）
+          - streamLlmProxy()（流式 SSE）
+          - 从 supabase session 获取 JWT
+          - 未登录时 mock fallback
+      13. 确保 npx expo start 可正常启动（至少 web 端无报错）
+
+
+      不做：任何用户可见的功能界面和交互（Onboarding 页面、Tab 页面内容、场景 UI 等由后续任务实现）。导航结构只建骨架（空页面占位）。
+    acceptance: Expo 项目可启动，Supabase schema 已定义，auth + RevenueCat + LLM proxy 基础设施就绪，导航结构完整
+    started_at: '2026-03-03T05:05:25.597Z'
+    branch: weaver/T1772514008997-speakland-foundation
+    notes: |
+
+      [Auto-recovery] Task was IN_PROGRESS when daemon started — reset to TODO. Previous worktree changes are preserved.
+  - id: T1772514049362
+    title: Speakland 全功能实现 — Onboarding + 主页面 + 学习场景 + 故事内容。
+    status: TODO
+    depends_on:
+      - T1772514008997
+    raw_request: |-
+      Speakland 全功能实现 — Onboarding + 主页面 + 学习场景 + 故事内容。
+
+      PRD: docs/prds/speakland-app.md
+      故事参考: docs/story-references/
+
+      基于 Foundation 任务搭建的基础设施，实现所有 P0 MVP 用户功能。
+
+      A. Onboarding 流程（app/onboarding/）：
+      - 吉祥物（猫咪精灵，手持书本）静态立绘展示，全程陪伴问卷
+      - 问卷页面序列：学习语种（英语/西班牙语）→ 学习目的（商务/考试/交流/旅游）→ 难度自评 → 学习偏好（口语/单词/听力）→ 学习痛点（记不住单词/无聊/无法坚持）
+      - 选择语种后启用双语标签系统（非基础词汇显示目标语言翻译标注）
+      - 功能亮点动态展示：根据用户痛点匹配功能卖点（「难以坚持」→「NPC 每日发送复习单词」，「无聊」→「有趣剧情+深度代入感」）
+      - 剧本方向选择：职场大女主 / 和明星谈恋爱 / 穿越到中世纪 / 其他
+      - 输入游戏昵称
+      - 新手引导世界：吉祥物带领用户熟悉核心 UI（词汇交互演示等）
+      - 付费墙：引导结束后触发，RevenueCat 集成，完成购买或关闭后进入主页面
+
+      B. 主页面 3 Tab（app/(tabs)/）：
+      - Tab 1 故事 (Home)：顶部搜索框 + 世界场景卡片（封面图、难度标注、简介）+ 推荐世界
+      - Tab 2 角色：已解锁 NPC 角色列表 + 吉祥物为默认角色 + 点击角色进入一对一对话
+      - Tab 3 单词本/设置：生词列表 + 收藏句子 + 口音建议记录 + 顶部登录按钮（登录后同步数据）
+
+      C. 核心学习场景（app/scene/[id].tsx）：
+      - 场景 UI 布局：背景场景图片 + 上方两个角色立绘（静态+表情切换）+ 中部实时字幕+语音播放 + 底部聊天输入框（语音/文字切换）
+      - 语音转文字输入（STT）：使用平台原生 API（expo-speech 或 @react-native-voice/voice）
+      - AI 对话引擎：通过 lib/llmClient.ts 调用 LLM proxy，流式输出角色对话，保持角色人设一致性和剧情连贯性
+      - 词汇长按交互：长按字幕中的单词 → 弹窗显示语境翻译 + 发音按钮 + 加入生词本（默认长按即添加，可在弹窗取消）
+      - 全文翻译：右上角翻译按钮，点击后显示设备语言翻译
+      - 顶部提醒系统（学习反馈区）：鼓励型（「说得非常地道」+ 小标识）+ 单词改正型（更好的用词/语法建议）
+      - Smart Assist 服务：异步语法反馈，调用 callLlmProxy() + response_format
+      - State/Plot 服务：异步剧情判定，用户选择影响分支走向
+
+      D. 角色一对一对话：
+      - 从角色 Tab 点击 NPC 进入独立对话界面
+      - 复用 LLM 对话引擎，但无剧情线约束
+      - 吉祥物为默认可对话角色
+
+      E. 故事内容（3 个短故事世界）：
+      - 参考 docs/story-references/ 中的故事素材
+      - 类型覆盖：职场/生活/冒险（或匹配 Onboarding 热门选项）
+      - 每个故事包含：剧情大纲 + 角色人设（含立绘占位）+ 分支节点定义
+      - 数据格式：JSON/TS 数据文件，符合 types/ 中定义的 Story/Character/Chapter 类型
+
+      设计约束：
+      - 下方为用户沉浸体验区，不放教学提醒
+      - 上方为学习反馈区（提醒、纠正）
+      - 长按默认添加生词，降低操作成本
+      - MVP 语音仅做转文字，不做口音检测
+      - 角色使用静态立绘 + 表情切换，不做 Live2D
+    acceptance: 完整用户流程可走通：Onboarding → 主页 → 进入故事 → AI 对话 + 词汇交互 + 翻译 + 反馈
+  - id: T1772514064509
+    title: 'QA: Speakland MVP 端到端验证。'
+    status: TODO
+    depends_on:
+      - T1772514049362
+    raw_request: |-
+      QA: Speakland MVP 端到端验证。
+
+      验证所有 P0 功能链路完整可用：
+
+      1. 项目健康：npx expo start 无错误，TypeScript 编译通过，无 lint 错误
+      2. Onboarding 流程：问卷全步骤 → 功能亮点展示 → 剧本方向选择 → 昵称输入 → 新手引导 → 付费墙 → 进入主页面
+      3. Auth：Google/Apple 登录 → session 持久化 → 登出 → 重新登录恢复数据
+      4. 主页面 3 Tab：Tab 切换正常，故事卡片展示、角色列表、单词本数据正确
+      5. 故事场景：进入故事 → 场景 UI 正确（背景+角色立绘+字幕+输入框）→ AI 对话流式输出 → 剧情分支
+      6. 学习功能：词汇长按弹窗（翻译+发音+加入生词本）→ 全文翻译 → 顶部反馈提醒 → 生词本同步
+      7. 角色一对一对话：从角色 Tab 进入 → 自由对话正常
+      8. 数据同步：Supabase 读写正常（对话历史、游戏状态、生词本）
+      9. LLM Proxy：Edge Function 认证 + 流式/非流式转发正常
+
+      verdict: PASS/FAIL/BLOCKED
+    acceptance: E2E QA pass
