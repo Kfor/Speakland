@@ -6,7 +6,7 @@ settings:
 tasks:
   - id: T1772514008997
     title: Speakland Foundation — 项目脚手架 + 基础设施。
-    status: IN_PROGRESS
+    status: DONE
     depends_on: []
     raw_request: >-
       Speakland Foundation — 项目脚手架 + 基础设施。
@@ -70,12 +70,23 @@ tasks:
     acceptance: Expo 项目可启动，Supabase schema 已定义，auth + RevenueCat + LLM proxy 基础设施就绪，导航结构完整
     started_at: '2026-03-03T05:05:25.597Z'
     branch: weaver/T1772514008997-speakland-foundation
-    notes: |
+    notes: >
 
       [Auto-recovery] Task was IN_PROGRESS when daemon started — reset to TODO. Previous worktree changes are preserved.
+
+
+      PR #1 created: https://github.com/Kfor/Speakland/pull/1. Auto-merge pending.
+
+
+      PR #2 created: https://github.com/Kfor/Speakland/pull/2. All 13 requirements implemented, 55 tests passing, QA
+      PASS, Review PASS. Auto-merge pending.
+    pr:
+      number: 1
+      url: https://github.com/Kfor/Speakland/pull/1
+    merged: true
   - id: T1772514049362
     title: Speakland 全功能实现 — Onboarding + 主页面 + 学习场景 + 故事内容。
-    status: TODO
+    status: IN_PROGRESS
     depends_on:
       - T1772514008997
     raw_request: |-
@@ -129,6 +140,8 @@ tasks:
       - MVP 语音仅做转文字，不做口音检测
       - 角色使用静态立绘 + 表情切换，不做 Live2D
     acceptance: 完整用户流程可走通：Onboarding → 主页 → 进入故事 → AI 对话 + 词汇交互 + 翻译 + 反馈
+    started_at: '2026-03-03T05:34:41.966Z'
+    branch: weaver/T1772514049362-speakland-onboarding
   - id: T1772514064509
     title: 'QA: Speakland MVP 端到端验证。'
     status: TODO
@@ -150,4 +163,44 @@ tasks:
       9. LLM Proxy：Edge Function 认证 + 流式/非流式转发正常
 
       verdict: PASS/FAIL/BLOCKED
+    acceptance: E2E QA pass
+  - id: T1772515590190
+    title: >-
+      Speakland 项目基础架构搭建。PRD: docs/prds/speakland-app.md。范围：(1) Expo (React Native + TypeScript)
+      项目初始化，安装全部依赖（supabase-js, ...
+    status: IN_PROGRESS
+    depends_on: []
+    raw_request: >-
+      Speakland 项目基础架构搭建。PRD: docs/prds/speakland-app.md。范围：(1) Expo (React Native + TypeScript)
+      项目初始化，安装全部依赖（supabase-js, revenucat, expo-auth-session, expo-speech 等）；(2) Supabase 客户端配置 + 数据库 schema（users,
+      vocabularies, stories, characters, progress 等表，含 RLS 策略）；(3) Google/Apple Sign-In 登录集成；(4) RevenueCat 付费墙集成（订阅页面 +
+      购买流程）；(5) 3-Tab 底部导航骨架（故事/角色/设置）；(6) 全局主题/样式系统 + 基础 TypeScript 类型定义；(7) AI 对话服务层（OpenAI-compatible API，封装角色扮演 +
+      剧情上下文管理）。所有外部服务凭证通过 env 变量配置，提供 .env.example。
+    acceptance: Expo 项目可运行，Supabase 连接正常，Auth 和 RevenueCat 集成就绪，3-Tab 导航可切换
+    started_at: '2026-03-03T05:26:31.488Z'
+    branch: weaver/T1772515590190-speakland-prd-docs-prds-speakland-app-md-1-expo-
+  - id: T1772515606658
+    title: >-
+      Speakland 全部 P0 功能实现。PRD: docs/prds/speakland-app.md。在 T1 基础架构上实现全部 P0 MVP 功能：(1) Onboarding
+      完整流程——吉祥物猫咪精灵陪伴、问卷（语种/目的...
+    status: TODO
+    depends_on:
+      - T1772515590190
+    raw_request: >-
+      Speakland 全部 P0 功能实现。PRD: docs/prds/speakland-app.md。在 T1 基础架构上实现全部 P0 MVP 功能：(1) Onboarding
+      完整流程——吉祥物猫咪精灵陪伴、问卷（语种/目的/难度/偏好/痛点）、双语标签切换、功能亮点动态展示、剧本方向选择、输入昵称、新手引导场景、付费墙触发；(2) 主页面 3 Tab 完整实现——故事
+      Tab（搜索框+世界卡片+推荐）、角色 Tab（已解锁NPC列表+一对一对话入口）、设置 Tab（生词列表+收藏句子+口音记录+登录按钮）；(3)
+      核心学习场景——场景背景图+角色立绘+表情切换+实时字幕+语音播放+聊天输入框（语音STT/文字）；(4) 词汇长按交互——弹窗显示语境翻译+发音+加入生词本；(5) 全文翻译按钮；(6)
+      顶部提醒系统（鼓励型+单词纠正型）；(7) 3 个短故事世界内容（职场/生活/冒险，含剧情大纲+角色人设+分支节点）；(8) AI 驱动的角色对话（角色一致性+剧情连贯性+分支选择）；(9) 数据同步到 Supabase。
+    acceptance: 全部 P0 功能可用：Onboarding 完整流程、故事场景可对话、词汇交互正常、生词本有数据、翻译可用、角色聊天正常
+  - id: T1772515614400
+    title: >-
+      QA: Speakland MVP 端到端验证。运行完整测试套件，验证以下核心流程：(1) Onboarding 问卷全流程→付费墙→进入主页；(2) 故事 Tab 浏览→进入故事场景→AI 对话→词汇长按→生词本添加；(3)
+      角色 ...
+    status: TODO
+    depends_on:
+      - T1772515606658
+    raw_request: >-
+      QA: Speakland MVP 端到端验证。运行完整测试套件，验证以下核心流程：(1) Onboarding 问卷全流程→付费墙→进入主页；(2) 故事 Tab 浏览→进入故事场景→AI 对话→词汇长按→生词本添加；(3)
+      角色 Tab→选择角色→一对一对话；(4) 设置 Tab 生词列表/收藏句子显示正确；(5) 全文翻译功能；(6) 顶部提醒系统；(7) 登录/登出→数据同步。verdict: PASS/FAIL/BLOCKED。
     acceptance: E2E QA pass
