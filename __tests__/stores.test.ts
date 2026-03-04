@@ -4,6 +4,18 @@
  * Verifies store state management, actions, and resets.
  */
 
+// Mock the DB layer so fire-and-forget calls don't leak after tests
+jest.mock('../lib/db', () => ({
+  loadUserProfile: jest.fn().mockResolvedValue(null),
+  saveOnboardingData: jest.fn().mockResolvedValue(undefined),
+  upsertGameState: jest.fn().mockResolvedValue(undefined),
+  loadGameStates: jest.fn().mockResolvedValue([]),
+  saveDialogueMessage: jest.fn().mockResolvedValue(undefined),
+  upsertWordEntry: jest.fn().mockResolvedValue(undefined),
+  deleteWordEntry: jest.fn().mockResolvedValue(undefined),
+  loadWordEntries: jest.fn().mockResolvedValue([]),
+}));
+
 import { useAuthStore } from '../stores/useAuthStore';
 import { useOnboardingStore } from '../stores/useOnboardingStore';
 import { useGameStore } from '../stores/useGameStore';
