@@ -33,6 +33,7 @@ import {
   WordPopup,
 } from '../../components';
 import { useGameStore, useVocabularyStore } from '../../stores';
+import { useAuth } from '../../providers/AuthProvider';
 import {
   getStoryById,
   getCharactersForStory,
@@ -68,6 +69,8 @@ export default function SceneScreen() {
     setCurrentGame,
   } = useGameStore();
   const { words, addWord, removeWord } = useVocabularyStore();
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? 'local-user';
 
   // Scene data
   const [story, setStory] = useState<Story | null>(null);
@@ -127,7 +130,7 @@ export default function SceneScreen() {
     clearMessages();
     setCurrentGame({
       id: `game-${Date.now()}`,
-      userId: 'local-user',
+      userId,
       storyId: loadedStory.id,
       currentSegmentId: rootSegment.id,
       completedSegmentIds: [],
@@ -147,7 +150,7 @@ export default function SceneScreen() {
     if (rootSegment.narrativeIntro) {
       addMessage({
         id: generateMessageId(),
-        userId: 'local-user',
+        userId,
         storyId: loadedStory.id,
         segmentId: rootSegment.id,
         speaker: 'narrator',
@@ -265,7 +268,7 @@ export default function SceneScreen() {
       // Add user message
       const userMessage: DialogueMessage = {
         id: generateMessageId(),
-        userId: 'local-user',
+        userId,
         storyId: story.id,
         segmentId: segment.id,
         speaker: 'user',
@@ -323,7 +326,7 @@ export default function SceneScreen() {
       if (fullResponse.trim().length > 0) {
         const aiMessage: DialogueMessage = {
           id: generateMessageId(),
-          userId: 'local-user',
+          userId,
           storyId: story.id,
           segmentId: segment.id,
           speaker: 'character',
@@ -343,6 +346,7 @@ export default function SceneScreen() {
       segment,
       isGenerating,
       turnCount,
+      userId,
       addMessage,
       setIsGenerating,
       buildLlmMessages,
@@ -396,7 +400,7 @@ export default function SceneScreen() {
     } else {
       addWord({
         id: `word-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        userId: 'local-user',
+        userId,
         word: selectedWord,
         language: 'en',
         translation: wordTranslation,
@@ -406,7 +410,7 @@ export default function SceneScreen() {
       });
     }
     setWordPopupVisible(false);
-  }, [isWordInBook, selectedWord, wordTranslation, words, addWord, removeWord]);
+  }, [isWordInBook, selectedWord, wordTranslation, words, userId, addWord, removeWord]);
 
   // ---- Translate last message ----
   const handleTranslate = useCallback(async () => {

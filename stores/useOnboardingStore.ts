@@ -1,5 +1,8 @@
 /**
  * Onboarding Store - Zustand store for onboarding flow state
+ *
+ * DB sync: saveToDb(userId) persists onboarding data to user_profiles
+ * once on completion.
  */
 
 import { create } from 'zustand';
@@ -11,6 +14,7 @@ import type {
   DifficultyLevel,
   StoryPreference,
 } from '../types/user';
+import { saveOnboardingData } from '../lib/db';
 
 interface OnboardingStoreState {
   /** Current step index in the onboarding flow */
@@ -27,12 +31,13 @@ interface OnboardingStoreState {
   setLearningPains: (pains: LearningPain[]) => void;
   setStoryPreference: (pref: StoryPreference) => void;
   setNickname: (nickname: string) => void;
+  saveToDb: (userId: string) => Promise<void>;
   reset: () => void;
 }
 
 const initialData: OnboardingData = {};
 
-export const useOnboardingStore = create<OnboardingStoreState>((set) => ({
+export const useOnboardingStore = create<OnboardingStoreState>((set, get) => ({
   currentStep: 0,
   data: { ...initialData },
 
@@ -54,5 +59,13 @@ export const useOnboardingStore = create<OnboardingStoreState>((set) => ({
     set((state) => ({ data: { ...state.data, storyPreference: pref } })),
   setNickname: (nickname) =>
     set((state) => ({ data: { ...state.data, nickname } })),
+
+  saveToDb: async (userId) => {
+    const { data } = get();
+    const withTimestamp = { ...data, completedAt: new Date().toISOString() };
+    set({ data: withTimestamp });
+    await saveOnboardingData(userId, withTimestamp);
+  },
+
   reset: () => set({ currentStep: 0, data: { ...initialData } }),
 }));
