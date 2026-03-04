@@ -7,6 +7,7 @@
  * - Apple Sign-In via expo-apple-authentication
  * - Sign out
  * - Auth state change subscription
+ * - Store hydration on SIGNED_IN, store reset on SIGNED_OUT
  */
 
 import React, {
@@ -24,6 +25,7 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { configureRevenueCat, identifyRevenueCatUser, resetRevenueCatUser } from '../lib/revenueCat';
+import { useAuthStore, useGameStore, useVocabularyStore, useOnboardingStore } from '../stores';
 
 interface AuthContextValue {
   session: Session | null;
@@ -47,6 +49,25 @@ export function useAuth(): AuthContextValue {
   return useContext(AuthContext);
 }
 
+/** Load all store data from DB in parallel */
+function hydrateStores(userId: string): void {
+  Promise.all([
+    useAuthStore.getState().loadFromDb(userId),
+    useGameStore.getState().loadFromDb(userId),
+    useVocabularyStore.getState().loadFromDb(userId),
+  ]).catch((err) => {
+    console.warn('[Auth] Store hydration error:', err);
+  });
+}
+
+/** Reset all stores to initial state */
+function resetAllStores(): void {
+  useAuthStore.getState().reset();
+  useGameStore.getState().reset();
+  useVocabularyStore.getState().reset();
+  useOnboardingStore.getState().reset();
+}
+
 const GOOGLE_CLIENT_ID_WEB =
   process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB ?? '';
 
@@ -61,8 +82,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setSession(initialSession);
       setIsLoading(false);
       if (initialSession?.user) {
-        configureRevenueCat(initialSession.user.id);
-        identifyRevenueCatUser(initialSession.user.id);
+        const userId = initialSession.user.id;
+        configureRevenueCat(userId);
+        identifyRevenueCatUser(userId);
+        hydrateStores(userId);
       } else {
         configureRevenueCat();
       }
@@ -71,9 +94,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
-      if (newSession?.user) {
+
+      if (event === 'SIGNED_IN' && newSession?.user) {
+        identifyRevenueCatUser(newSession.user.id);
+        hydrateStores(newSession.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        resetAllStores();
+      } else if (newSession?.user) {
         identifyRevenueCatUser(newSession.user.id);
       }
     });
